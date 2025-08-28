@@ -294,12 +294,7 @@
             };
             const checkApiHealth = async () => {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/healthcheck`, {
-                         headers: {
-                                'Content-Type': 'application/json',
-                                'ngrok-skip-browser-warning': 'true' // Add this line
-                            },
-                    });
+                    const response = await fetch(`${API_BASE_URL}/healthcheck`);
                     const data = await response.json();
 
                     if (data.status === 'ready') {
