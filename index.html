@@ -8,12 +8,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-    
+
     <style>
-        /* Custom styles for DHL theme and AI feel */
         body {
             font-family: 'Inter', sans-serif;
             --dhl-yellow: #FFCC00;
@@ -24,14 +23,11 @@
             --text-secondary: #A0A0A0;
             --border-color: #333333;
         }
-
-        /* Webkit scrollbar styling */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-light); }
         ::-webkit-scrollbar-thumb { background: #4f4f4f; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #6a6a6a; }
 
-        /* Blinking cursor effect for streaming text */
         .blinking-cursor {
             display: inline-block;
             width: 8px;
@@ -39,308 +35,248 @@
             background-color: var(--dhl-yellow);
             animation: blink 1s step-end infinite;
             margin-left: 4px;
-            vertical-align: bottom; /* Aligns cursor better with text */
+            vertical-align: bottom;
         }
+        @keyframes blink { from, to { background-color: transparent; } 50% { background-color: var(--dhl-yellow); } }
 
-        @keyframes blink {
-            from, to { background-color: transparent; }
-            50% { background-color: var(--dhl-yellow); }
-        }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* NEW: Spinning gear animation */
-        .animate-spin {
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        .focus-ring-dhl:focus { outline: 2px solid var(--dhl-yellow); outline-offset: 2px; }
 
-        /* Custom focus ring color */
-        .focus-ring-dhl:focus {
-            outline: 2px solid var(--dhl-yellow);
-            outline-offset: 2px;
-        }
-
-        /* Styles for Markdown content */
-        .ai-text ul {
-            list-style-type: disc;
-            padding-left: 20px;
-            margin-top: 8px;
-            margin-bottom: 8px;
-        }
-        .ai-text li {
-            margin-bottom: 4px;
-        }
-        .ai-text strong {
-            font-weight: 600;
-        }
-        
-        /* THIS IS THE NEW RULE TO PREVENT TEXT OVERFLOW */
-        .ai-text {
-            overflow-wrap: break-word;
-            word-break: break-word;
-        }
-        
+        .ai-text ul { list-style-type: disc; padding-left: 20px; margin-top: 8px; margin-bottom: 8px; }
+        .ai-text li { margin-bottom: 4px; }
+        .ai-text strong { font-weight: 600; }
+        .ai-text { overflow-wrap: break-word; word-break: break-word; }
     </style>
 </head>
 <body class="bg-[var(--bg-dark)] text-[var(--text-primary)] flex flex-col h-screen antialiased">
 
-    <header class="bg-[var(--bg-light)] border-b border-[var(--border-color)] p-4 flex items-center justify-between shadow-lg">
-        <div class="flex items-center gap-3">
-            <div class="w-12 h-8 bg-[var(--dhl-yellow)] flex items-center justify-center rounded-md">
-                <span class="text-[var(--dhl-red)] font-extrabold text-lg tracking-tighter">DHL</span>
-            </div>
-            <h1 class="text-xl font-bold text-white">NOSTRADECIUS</h1>
+<header class="bg-[var(--bg-light)] border-b border-[var(--border-color)] p-4 flex items-center justify-between shadow-lg">
+    <div class="flex items-center gap-3">
+        <div class="w-12 h-8 bg-[var(--dhl-yellow)] flex items-center justify-center rounded-md">
+            <span class="text-[var(--dhl-red)] font-extrabold text-lg tracking-tighter">DHL</span>
         </div>
-        <div id="status-indicator" class="flex items-center gap-2 text-sm">
-            <div id="status-dot" class="w-3 h-3 rounded-full bg-orange-500 animate-pulse"></div>
-            <span id="status-text" class="text-[var(--text-secondary)]">Inicializando...</span>
-        </div>
-    </header>
+        <h1 class="text-xl font-bold text-white">NOSTRADECIUS</h1>
+    </div>
+    <div id="status-indicator" class="flex items-center gap-2 text-sm">
+        <div id="status-dot" class="w-3 h-3 rounded-full bg-orange-500 animate-pulse"></div>
+        <span id="status-text" class="text-[var(--text-secondary)]">Inicializando...</span>
+    </div>
+</header>
 
-    <main id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6">
-        <div class="flex items-start gap-3">
-            <div class="w-8 h-8 bg-[var(--dhl-yellow)] flex items-center justify-center rounded-full flex-shrink-0">
-                <span class="text-[var(--dhl-red)] font-bold">AI</span>
-            </div>
-            <div class="bg-[var(--bg-light)] rounded-lg p-4 max-w-xl">
-                <p>Olá! Eu sou o Assistente de IA da DHL. Tenho acesso à nossa base de conhecimento interna. Como posso ajudar hoje?</p>
-            </div>
+<main id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6">
+    <div class="flex items-start gap-3">
+        <div class="w-8 h-8 bg-[var(--dhl-yellow)] flex items-center justify-center rounded-full flex-shrink-0">
+            <span class="text-[var(--dhl-red)] font-bold">AI</span>
         </div>
-    </main>
-
-    <footer class="bg-[var(--bg-dark)] border-t border-[var(--border-color)] p-4">
-        <div class="max-w-3xl mx-auto">
-            <form id="chat-form" class="relative">
-                <textarea 
-                    id="message-input"
-                    rows="1"
-                    placeholder="Faça uma pergunta..."
-                    class="w-full bg-[var(--bg-light)] text-[var(--text-primary)] rounded-full py-3 pl-6 pr-16 resize-none border border-[var(--border-color)] focus:outline-none focus-ring-dhl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled
-                ></textarea>
-                <button 
-                    id="send-button"
-                    type="submit" 
-                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-[var(--dhl-yellow)] text-[var(--dhl-red)] w-10 h-10 rounded-full flex items-center justify-center hover:bg-yellow-400 transition-colors duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                    disabled
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                    </svg>
-                </button>
-            </form>
-            <div class="text-center text-xs text-[var(--text-secondary)] mt-3">
-                <p>Desenvolvido por: Vincent Pernarh, Vitoria Andrade & Decio Martins</p>
-            </div>
-        </div>
-    </footer>
-
-    <div id="user-message-template" class="hidden">
-        <div class="flex items-start gap-3 justify-end">
-            <div class="bg-blue-600 rounded-lg p-4 max-w-xl">
-                <p class="user-text"></p>
-            </div>
+        <div class="bg-[var(--bg-light)] rounded-lg p-4 max-w-xl">
+            <p>Olá! Eu sou o Assistente de IA da DHL. Tenho acesso à nossa base de conhecimento interna. Como posso ajudar hoje?</p>
         </div>
     </div>
+</main>
 
-    <div id="ai-message-template" class="hidden">
-        <div class="flex items-start gap-3">
-            <div class="w-8 h-8 bg-[var(--dhl-yellow)] flex items-center justify-center rounded-full flex-shrink-0">
-                <span class="text-[var(--dhl-red)] font-bold">AI</span>
-            </div>
-            <div class="bg-[var(--bg-light)] rounded-lg p-4 max-w-xl">
-                <div class="ai-text"></div> </div>
+<footer class="bg-[var(--bg-dark)] border-t border-[var(--border-color)] p-4">
+    <div class="max-w-3xl mx-auto">
+        <form id="chat-form" class="relative">
+            <textarea 
+                id="message-input"
+                rows="1"
+                placeholder="Faça uma pergunta..."
+                class="w-full bg-[var(--bg-light)] text-[var(--text-primary)] rounded-full py-3 pl-6 pr-16 resize-none border border-[var(--border-color)] focus:outline-none focus-ring-dhl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled
+            ></textarea>
+            <button 
+                id="send-button"
+                type="submit" 
+                class="absolute right-2 top-1/2 -translate-y-1/2 bg-[var(--dhl-yellow)] text-[var(--dhl-red)] w-10 h-10 rounded-full flex items-center justify-center hover:bg-yellow-400 transition-colors duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed"
+                disabled
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+            </button>
+        </form>
+        <div class="text-center text-xs text-[var(--text-secondary)] mt-3">
+            <p>Desenvolvido por: Vincent Pernarh, Vitoria Andrade & Decio Martins</p>
         </div>
     </div>
+</footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements ---
-            const chatContainer = document.getElementById('chat-container');
-            const chatForm = document.getElementById('chat-form');
-            const messageInput = document.getElementById('message-input');
-            const sendButton = document.getElementById('send-button');
-            const statusDot = document.getElementById('status-dot');
-            const statusText = document.getElementById('status-text');
+<div id="user-message-template" class="hidden">
+    <div class="flex items-start gap-3 justify-end">
+        <div class="bg-blue-600 rounded-lg p-4 max-w-xl">
+            <p class="user-text"></p>
+        </div>
+    </div>
+</div>
 
-            const API_BASE_URL = 'https://scarcely-precious-prawn.ngrok-free.app'; // Substitua pela URL correta da sua API
-            let healthCheckInterval;
+<div id="ai-message-template" class="hidden">
+    <div class="flex items-start gap-3">
+        <div class="w-8 h-8 bg-[var(--dhl-yellow)] flex items-center justify-center rounded-full flex-shrink-0">
+            <span class="text-[var(--dhl-red)] font-bold">AI</span>
+        </div>
+        <div class="bg-[var(--bg-light)] rounded-lg p-4 max-w-xl">
+            <div class="ai-text"></div>
+        </div>
+    </div>
+</div>
 
-            const scrollToBottom = () => {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            };
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Safe localization fallback ---
+    window.translations = window.translations || {}; // Prevent undefined errors
+    const t = key => (window.translations[key] || key);
 
-            const addMessage = (text, sender) => {
-                const templateId = sender === 'user' ? 'user-message-template' : 'ai-message-template';
-                const template = document.getElementById(templateId);
-                const newMessage = template.cloneNode(true);
-                
-                newMessage.classList.remove('hidden');
-                newMessage.removeAttribute('id');
+    // --- DOM Elements ---
+    const chatContainer = document.getElementById('chat-container');
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
 
-                const textElement = newMessage.querySelector(`.${sender}-text`);
-                if (text) {
-                    if (sender === 'user') {
-                        // Usuário → texto puro (segurança)
-                        textElement.textContent = text;
-                    } else {
-                        // AI → passa pelo parser Markdown
-                        const safeMarkdown = DOMPurify.sanitize(marked.parse(text));
-                        textElement.innerHTML = safeMarkdown;
-                    }
-                }
-                
-                chatContainer.appendChild(newMessage);
-                scrollToBottom();
-                return textElement;
-            };
+    const API_BASE_URL = 'https://scarcely-precious-prawn.ngrok-free.app'; // Replace with your API
+    let healthCheckInterval;
 
-            const handleFormSubmit = async (e) => {
-                e.preventDefault();
-                const question = messageInput.value.trim();
-                if (!question) return;
+    const scrollToBottom = () => { chatContainer.scrollTop = chatContainer.scrollHeight; };
 
-                addMessage(question, 'user');
-                messageInput.value = '';
-                messageInput.style.height = 'auto';
+    const addMessage = (text, sender) => {
+        const templateId = sender === 'user' ? 'user-message-template' : 'ai-message-template';
+        const template = document.getElementById(templateId);
+        const newMessage = template.cloneNode(true);
+        newMessage.classList.remove('hidden');
+        newMessage.removeAttribute('id');
 
-                sendButton.disabled = true;
-                messageInput.disabled = true;
+        const textElement = newMessage.querySelector(`.${sender}-text`) || newMessage.querySelector('.ai-text');
+        if (text) {
+            if (sender === 'user') textElement.textContent = text;
+            else textElement.innerHTML = DOMPurify.sanitize(marked.parse(text));
+        }
 
-                // Placeholder da AI com "Thinking..."
-                const aiTextElement = addMessage('', 'ai');
-                aiTextElement.innerHTML = `
-                    <div class="flex items-center gap-3 text-[var(--text-secondary)]">
-                        <svg class="animate-spin h-5 w-5 text-[var(--dhl-yellow)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Thinking...</span>
-                    </div>`;
+        chatContainer.appendChild(newMessage);
+        scrollToBottom();
+        return textElement;
+    };
 
-                scrollToBottom();
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        const question = messageInput.value.trim();
+        if (!question) return;
 
-                try {
-                    const response = await fetch(`${API_BASE_URL}/ask`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'ngrok-skip-browser-warning': 'true' // Add this line
-                            },
-                            body: JSON.stringify({ question }),
-                        });
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                    }
+        addMessage(question, 'user');
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        sendButton.disabled = true;
+        messageInput.disabled = true;
 
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    let buffer = '';
-                    let fullResponse = '';
-                    let isFirstChunk = true;
+        const aiTextElement = addMessage('', 'ai');
+        aiTextElement.innerHTML = `
+            <div class="flex items-center gap-3 text-[var(--text-secondary)]">
+                <svg class="animate-spin h-5 w-5 text-[var(--dhl-yellow)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Thinking...</span>
+            </div>`;
 
-                    while (true) {
-                        const { value, done } = await reader.read();
-                        if (done) break;
-                        
-                        buffer += decoder.decode(value, { stream: true });
-                        const lines = buffer.split('\n\n');
-                        buffer = lines.pop();
+        scrollToBottom();
 
-                        for (const line of lines) {
-                            if (line.startsWith('data: ')) {
-                                const data = line.substring(6);
-
-                                if (data === '[THINKING]') continue;
-
-                                if (data === '[END]') {
-                                    if (isFirstChunk) {
-                                        aiTextElement.innerHTML = 'No response received from AI.';
-                                    } else {
-                                        // Render final sem cursor
-                                        const safeMarkdown = DOMPurify.sanitize(marked.parse(fullResponse));
-                                        aiTextElement.innerHTML = safeMarkdown;
-                                    }
-                                    sendButton.disabled = false;
-                                    messageInput.disabled = false;
-                                    messageInput.focus();
-                                    return;
-                                }
-
-                                if (isFirstChunk) {
-                                    isFirstChunk = false;
-                                    fullResponse = '';
-                                }
-
-                                // 🔑 FIX: força quebra dupla de linha
-                                fullResponse += data;
-                                const markdownFixed = fullResponse.replace(/\n/g, '\n\n');
-
-                                aiTextElement.innerHTML = DOMPurify.sanitize(marked.parse(markdownFixed)) + '<span class="blinking-cursor"></span>';
-                                scrollToBottom();
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.error('Streaming error:', error);
-                    aiTextElement.innerHTML = `<span class="text-red-400">Error: Could not connect to the AI service. Details: ${error.message}</span>`;
-                } finally {
-                    sendButton.disabled = false;
-                    messageInput.disabled = false;
-                }
-            };
-            const checkApiHealth = async () => {
-                try {
-                    const response = await fetch(`${API_BASE_URL}/healthcheck`, {
-                        headers: {
-                            'ngrok-skip-browser-warning': 'true'
-                        }
-                    });
-                    const data = await response.json();
-
-                    if (data.status === 'ready') {
-                        clearInterval(healthCheckInterval);
-                        statusDot.classList.remove('bg-orange-500', 'animate-pulse', 'bg-red-500');
-                        statusDot.classList.add('bg-green-500');
-                        statusText.textContent = 'Pronto';
-                        messageInput.disabled = false;
-                        sendButton.disabled = false;
-                        messageInput.placeholder = "Faça uma pergunta sobre nossos serviços...";
-                    }
-                } catch (error) {
-                    statusText.textContent = 'Desconectado';
-                    statusDot.classList.remove('bg-orange-500', 'animate-pulse');
-                    statusDot.classList.add('bg-red-500');
-                    messageInput.placeholder = "Não foi possível conectar ao serviço de IA...";
-                    messageInput.disabled = true;
-                    sendButton.disabled = true;
-                }
-            };
-            
-            const autoResizeTextarea = () => {
-                messageInput.style.height = 'auto';
-                const scrollHeight = messageInput.scrollHeight;
-                messageInput.style.height = (scrollHeight < 200 ? scrollHeight : 200) + 'px';
-            };
-
-            // --- Event Listeners ---
-            chatForm.addEventListener('submit', handleFormSubmit);
-            messageInput.addEventListener('input', autoResizeTextarea);
-            messageInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    chatForm.requestSubmit();
-                }
+        try {
+            const response = await fetch(`${API_BASE_URL}/ask`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                body: JSON.stringify({ question }),
             });
 
-            // --- Initializations ---
-            healthCheckInterval = setInterval(checkApiHealth, 3000);
-            checkApiHealth();
-            scrollToBottom();
-        });
-    </script>
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '', fullResponse = '', isFirstChunk = true;
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.substring(6);
+                        if (data === '[THINKING]') continue;
+                        if (data === '[END]') {
+                            if (isFirstChunk) aiTextElement.innerHTML = t('No response received from AI.');
+                            else aiTextElement.innerHTML = DOMPurify.sanitize(marked.parse(fullResponse));
+                            sendButton.disabled = false;
+                            messageInput.disabled = false;
+                            messageInput.focus();
+                            return;
+                        }
+                        if (isFirstChunk) { isFirstChunk = false; fullResponse = ''; }
+                        fullResponse += data;
+                        const markdownFixed = fullResponse.replace(/\n/g, '\n\n');
+                        aiTextElement.innerHTML = DOMPurify.sanitize(marked.parse(markdownFixed)) + '<span class="blinking-cursor"></span>';
+                        scrollToBottom();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Streaming error:', error);
+            aiTextElement.innerHTML = `<span class="text-red-400">Error: Could not connect to the AI service. Details: ${error.message}</span>`;
+        } finally {
+            sendButton.disabled = false;
+            messageInput.disabled = false;
+        }
+    };
+
+    const checkApiHealth = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/healthcheck`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+            const data = await response.json();
+            if (data.status === 'ready') {
+                clearInterval(healthCheckInterval);
+                statusDot.classList.remove('bg-orange-500', 'animate-pulse', 'bg-red-500');
+                statusDot.classList.add('bg-green-500');
+                statusText.textContent = t('Pronto');
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.placeholder = t("Faça uma pergunta sobre nossos serviços...");
+            }
+        } catch (error) {
+            statusText.textContent = t('Desconectado');
+            statusDot.classList.remove('bg-orange-500', 'animate-pulse');
+            statusDot.classList.add('bg-red-500');
+            messageInput.placeholder = t("Não foi possível conectar ao serviço de IA...");
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+        }
+    };
+
+    const autoResizeTextarea = () => {
+        messageInput.style.height = 'auto';
+        const scrollHeight = messageInput.scrollHeight;
+        messageInput.style.height = (scrollHeight < 200 ? scrollHeight : 200) + 'px';
+    };
+
+    chatForm.addEventListener('submit', handleFormSubmit);
+    messageInput.addEventListener('input', autoResizeTextarea);
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            chatForm.requestSubmit();
+        }
+    });
+
+    healthCheckInterval = setInterval(checkApiHealth, 3000);
+    checkApiHealth();
+    scrollToBottom();
+});
+</script>
 </body>
 </html>
