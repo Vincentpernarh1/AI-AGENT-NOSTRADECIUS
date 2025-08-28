@@ -20,7 +20,8 @@ from langchain.prompts import PromptTemplate
 # Flask app & Configuration
 # =========================
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://ai-agent-nostradecius.vercel.app"}})
+CORS(app)
+
 # --- Configuration ---
 LLM_MODEL_PATH = os.getenv("LLM_MODEL_PATH", "C:/Users/perna/Desktop/NOSTRADECIUS AGENT/gemma-3-4b-it-UD-Q5_K_XL.gguf")
 EMBEDDING_MODEL_NAME = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
