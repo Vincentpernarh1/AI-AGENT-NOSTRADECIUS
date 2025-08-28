@@ -165,7 +165,7 @@
             const statusDot = document.getElementById('status-dot');
             const statusText = document.getElementById('status-text');
 
-            const API_BASE_URL = 'http://localhost:5000';
+            const API_BASE_URL = 'https://f643c0f5f0ba.ngrok-free.app'; // Substitua pela URL correta da sua API
             let healthCheckInterval;
 
             const scrollToBottom = () => {
@@ -309,8 +309,8 @@
                     statusDot.classList.remove('bg-orange-500', 'animate-pulse');
                     statusDot.classList.add('bg-red-500');
                     messageInput.placeholder = "Não foi possível conectar ao serviço de IA...";
-                    messageInput.disabled = true;
-                    sendButton.disabled = true;
+                    messageInput.disabled = false;
+                    sendButton.disabled = false;
                 }
             };
             
