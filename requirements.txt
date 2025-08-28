@@ -1,0 +1,16 @@
+flask
+flask-cors
+langchain
+langchain-community
+langchain-huggingface
+langchain-experimental
+llama-cpp-python
+sentence-transformers
+faiss-cpu
+pandas
+openpyxl
+unstructured
+python-magic
+lxml
+# Para PDFs, pode ser necessário instalar dependências adicionais
+# pip install "unstructured[pdf]"

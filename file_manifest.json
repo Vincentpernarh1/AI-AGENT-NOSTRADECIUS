@@ -1,0 +1,17 @@
+[
+  {
+    "file_path": "data_files/MATRIZ PRODUTIVIDADE - 19.08.2025.xlsx",
+    "tool_name": "productivity_data_query",
+    "description": "Use esta ferramenta para responder a perguntas sobre dados detalhados de produtividade da equipe e analistas de DHL, incluindo nomes, status, e outras métricas do ano de 2025. Ótima para perguntas como 'liste 5 projetos do analista X' ou 'qual o status do projeto Y'."
+  },
+  {
+    "file_path": "company_faiss_index",
+    "tool_name": "general_company_information",
+    "description": "Use esta ferramenta para perguntas gerais sobre a empresa, como o relatório anual de 2023, conquistas, desafios, visão estratégica e história. Use-a como um fallback para qualquer pergunta que não seja sobre dados estruturados específicos."
+  },
+  {
+    "file_path": "data_files/lista_funcionarios.csv",
+    "tool_name": "employee_list_query",
+    "description": "Use esta ferramenta para consultar a lista de todos os funcionários ativos, seus cargos e departamentos. Útil para perguntas sobre a estrutura da equipe ou para encontrar o departamento de um funcionário."
+  }
+]

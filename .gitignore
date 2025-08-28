@@ -1,0 +1,9 @@
+gemma-3-4b-it-UD-Q5_K_XL.gguf
+mistral-7b-instruct-v0.2.Q4_K_M.gguf
+models_cache/
+qwen2-7b-instruct-q5_k_m.gguf
+/embedding_cache
+/data_files
+credencial.env
+testemodelo.py
+try_docling.py
