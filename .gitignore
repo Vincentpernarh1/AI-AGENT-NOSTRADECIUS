@@ -4,4 +4,6 @@ openhermes-2-mistral-7b.Q4_K_M.gguf
 company_faiss_index
 conversation_faiss_index
 models_cache
-
+myenv
+TMS.db
+data_files
