@@ -1,0 +1,33 @@
+[
+  {
+    "tool_name": "conversational_fallback",
+    "description": "Use para saudações, despedidas, ou perguntas sobre a identidade da IA (ex: 'qual é seu nome?').",
+    "file_path": "conversation_faiss_index",
+    "tool_type": "vector_qa"
+  },
+  {
+    "tool_name": "general_company_information",
+    "description": "Use para perguntas sobre a empresa,funcionarios,faculdades ou formação e idiomas de cada funcionarion como relatórios, políticas, história e conquistas da empresa",
+    "file_path": "company_faiss_index",
+    "tool_type": "vector_qa"
+  },
+  {
+    "tool_name": "productivity_data_query",
+    "description": "Use para perguntas sobre dados detalhados de produtividade, projetos e métricas de analistas.Nome de analista, data, horas trabalhadas, projetos, tarefas, eficiência e outras métricas relacionadas à produtividade.",
+    "file_path": "data_files/MATRIZ PRODUTIVIDADE - 19.08.2025.xlsx",
+    "tool_type": "dataframe_agent"
+  },
+  {
+    "tool_name": "employee_list_query",
+    "description": "Use para consultar a lista de funcionários, seus cargos e departamentos.",
+    "file_path": "data_files/lista_funcionarios.csv",
+    "tool_type": "dataframe_agent"
+  },
+  {
+  "tool_name": "Philips",
+  "description": "Consulta API Philips — faz GET no endpoint e retorna os dados (JSON) como tabela para consultas.",
+  "file_path": "https://nostradecius.free.beeceptor.com/production",
+  "tool_type": "external_api"
+}
+
+]

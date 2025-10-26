@@ -1,0 +1,11 @@
+docling==2.45.0
+Flask==3.1.2
+flask_cors==6.0.1
+langchain==0.3.27
+langchain_community==0.3.29
+langchain_experimental==0.3.4
+langchain_huggingface==0.3.1
+numpy==2.3.3
+pandas==2.3.2
+scikit_learn==1.7.2
+unstructured==0.18.13
