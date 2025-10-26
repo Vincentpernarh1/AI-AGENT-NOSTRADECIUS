@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOSTRADECIUS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            --dhl-yellow: #FFCC00;
+            --dhl-red: #D40511;
+            --bg-dark: #111111;
+            --bg-light: #1E1E1E;
+            --text-primary: #EAEAEA;
+            --text-secondary: #A0A0A0;
+            --border-color: #333333;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-light); }
+        ::-webkit-scrollbar-thumb { background: #4f4f4f; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6a6a6a; }
+        .blinking-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 0.8rem;
+            background-color: var(--dhl-yellow);
+            animation: blink 1s step-end infinite;
+            margin-left: 4px;
+            vertical-align: bottom;
+        }
+        @keyframes blink { from, to { background-color: transparent; } 50% { background-color: var(--dhl-yellow); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .focus-ring-dhl:focus { outline: 2px solid var(--dhl-yellow); outline-offset: 2px; }
+        .ai-text ul { list-style-type: disc; padding-left: 20px; margin-top: 1px; margin-bottom: 1px; }
+        .ai-text li { margin-bottom: 1px; }
+        .ai-text strong { font-weight: 600; }
+        .ai-text { overflow-wrap: break-word; word-break: break-word;  white-space: pre-wrap;}
+        
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        #overlay { transition: opacity 0.3s ease-in-out; }
+        body.sidebar-open #main-content { filter: blur(4px); pointer-events: none; }
+
+        .query-card {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+    
+        .query-card:hover {
+            border-color: var(--dhl-yellow);
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+        }
+
+        .ai-text ul { list-style-type: disc; padding-left: 20px; margin-top: 1px; margin-bottom: 1px; }
+        /* ADD THIS BLOCK FOR NUMBERED LISTS */
+        .ai-text ol { 
+            list-style-type: decimal; 
+            padding-left: 20px; 
+            margin-top: 1px; 
+            margin-bottom: 1px; 
+        }
+        .ai-text li { margin-bottom: -4px; }
+        
+        /* ADD THIS BLOCK FOR TABLES */
+        .ai-text table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 3px;
+            margin-bottom: 1px;
+            overflow: hidden;
+            border-radius: 8px;
+            font-size: small;
+        }
+        .ai-text th, .ai-text td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .ai-text th {
+            background-color: #666764; /* A slightly different background for the header */
+            font-weight: 600;
+        }
+        .ai-text tr:last-of-type td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="bg-[var(--bg-dark)] text-[var(--text-primary)] antialiased relative">
+
+<!-- Sidebar -->
+<div id="sidebar" class="fixed top-0 left-0 w-72 h-full bg-[var(--bg-light)] z-50 transform -translate-x-full border-r border-[var(--border-color)] flex flex-col">
+    <div class="p-4 border-b border-[var(--border-color)]">
+        <h2 class="text-lg font-semibold">Chats</h2>
+    </div>
+    <div id="session-list" class="flex-1 overflow-y-auto p-2"></div>
+    <div class="p-4 border-t border-[var(--border-color)]">
+        <button id="sidebar-new-chat-button" class="w-full text-center bg-[var(--dhl-yellow)] text-[var(--dhl-red)] font-bold py-2 px-4 rounded-md hover:bg-yellow-400 transition-colors">
+            + Nova Conversa
+        </button>
+    </div>
+</div>
+<div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+<!-- Main Content Wrapper -->
+<div id="main-content" class="flex flex-col h-screen w-full transition-all duration-300">
+    <header class="bg-[var(--bg-light)] border-b border-[var(--border-color)] p-4 flex items-center justify-between shadow-lg">
+        <div class="flex items-center gap-3">
+            <button id="menu-toggle" class="w-12 h-8 bg-[var(--dhl-yellow)] flex items-center justify-center rounded-md cursor-pointer">
+                <span class="text-[var(--dhl-red)] font-extrabold text-lg tracking-tighter">DHL</span>
+            </button>
+            <h1 class="text-xl font-bold text-white">NOSTRADECIUS</h1>
+        </div>
+        <div id="status-indicator" class="flex items-center gap-2 text-sm">
+            <div id="status-dot" class="w-3 h-3 rounded-full bg-orange-500 animate-pulse"></div>
+            <span id="status-text" class="text-[var(--text-secondary)]">Inicializando...</span>
+        </div>
+    </header>
+
+    <main id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6"></main>
+
+    <footer class="bg-[var(--bg-dark)] border-t border-[var(--border-color)] p-4">
+        <div class="max-w-3xl mx-auto">
+            <div id="query-cards-container" class="mb-4 flex flex-wrap justify-center gap-2"></div>
+
+            <form id="chat-form" class="relative">
+                <textarea id="message-input" rows="1" placeholder="Faça uma pergunta..." class="w-full bg-[var(--bg-light)] text-[var(--text-primary)] rounded-full py-3 pl-6 pr-16 resize-none border border-[var(--border-color)] focus:outline-none focus-ring-dhl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" disabled></textarea>
+                <button id="send-button" type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 bg-[var(--dhl-yellow)] text-[var(--dhl-red)] w-10 h-10 rounded-full flex items-center justify-center hover:bg-yellow-400 transition-colors duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                </button>
+            </form>
+            <div class="text-center text-xs text-[var(--text-secondary)] mt-3">
+                <p>Desenvolvido por: Vincent Pernarh, Vitoria Andrade & Decio Martins</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<!-- Templates for Messages -->
+<div id="user-message-template" class="hidden"><div class="flex items-start gap-3 justify-end"><div class="bg-blue-600 rounded-lg p-4 max-w-xl"><p class="user-text"></p></div></div></div>
+<div id="ai-message-template" class="hidden"><div class="flex items-start gap-3"><div class="w-8 h-8 bg-[var(--dhl-yellow)] flex items-center justify-center rounded-full flex-shrink-0"><span class="text-[var(--dhl-red)] font-bold">AI</span></div><div class="bg-[var(--bg-light)] rounded-lg p-3 max-w-2xl"><div class="ai-text"></div></div></div></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
+    const chatContainer = document.getElementById('chat-container');
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebarNewChatButton = document.getElementById('sidebar-new-chat-button');
+    const sessionListContainer = document.getElementById('session-list');
+    const queryCardsContainer = document.getElementById('query-cards-container');
+
+    // // State Management
+    // const API_BASE_URL = 'http://127.0.0.1:5000';
+    
+     
+    const API_BASE_URL = 'https://scarcely-precious-prawn.ngrok-free.app:5000';
+
+    let healthCheckInterval;
+    let currentSessionId = null;
+    let sessions = {};
+    const suggestedQueries = [
+        "Quantos projetos o analista Decio tem?",
+        "Liste 3 projetos com status 'Done'",
+        "Quem te desenvolveu?",
+        "Qual o seu nome?"
+    ];
+
+    const toggleSidebar = () => {
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+        document.body.classList.toggle('sidebar-open');
+    };
+    
+    const renderQueryCards = () => {
+        queryCardsContainer.innerHTML = '';
+        queryCardsContainer.classList.remove('hidden');
+        suggestedQueries.forEach(query => {
+            const card = document.createElement('button');
+            card.className = 'query-card';
+            card.textContent = query;
+            queryCardsContainer.appendChild(card);
+        });
+    };
+    const hideQueryCards = () => {
+        queryCardsContainer.classList.add('hidden');
+    };
+
+    const renderSessions = () => {
+        sessionListContainer.innerHTML = '';
+        Object.values(sessions).reverse().forEach(session => {
+            const sessionElement = document.createElement('div');
+            sessionElement.className = `p-2 my-1 rounded-md cursor-pointer hover:bg-[var(--border-color)] truncate ${session.id === currentSessionId ? 'bg-[var(--dhl-yellow)] text-[var(--dhl-red)] font-semibold' : ''}`;
+            sessionElement.textContent = session.title;
+            sessionElement.title = session.title;
+            sessionElement.setAttribute('data-session-id', session.id);
+            sessionListContainer.appendChild(sessionElement);
+        });
+    };
+
+    const renderChatHistory = () => {
+        const session = sessions[currentSessionId];
+        if (session && session.history.length > 0) {
+            hideQueryCards();
+            chatContainer.innerHTML = ''; 
+            session.history.forEach(msg => addMessageToDOM(msg.text, msg.sender));
+        } else {
+            clearChat();
+            renderQueryCards();
+        }
+    };
+
+    const clearChat = () => {
+        chatContainer.innerHTML = '';
+        addWelcomeMessage();
+    };
+    
+    const addWelcomeMessage = () => {
+         chatContainer.innerHTML = `
+            <div id="welcome-message" class="flex items-start gap-3">
+                <div class="w-8 h-8 bg-[var(--dhl-yellow)] flex items-center justify-center rounded-full flex-shrink-0">
+                    <span class="text-[var(--dhl-red)] font-bold">AI</span>
+                </div>
+                <div class="bg-[var(--bg-light)] rounded-lg p-4 max-w-xl">
+                    <p>Olá! Eu sou o NOSTRADECIUS, Assistente de IA da DHL. Como posso ajudar hoje?</p>
+                </div>
+            </div>`;
+    };
+
+    const switchSession = (sessionId) => {
+        if (!sessionId || !sessions[sessionId] || sessionId === currentSessionId) {
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                 toggleSidebar();
+            }
+            return;
+        };
+        currentSessionId = sessionId;
+        renderSessions();
+        renderChatHistory();
+        toggleSidebar();
+    };
+
+    const startNewSession = () => {
+        const newId = crypto.randomUUID();
+        currentSessionId = newId;
+        sessions[newId] = { id: newId, title: `Nova Conversa`, history: [] };
+        renderSessions();
+        renderChatHistory();
+        if (document.body.classList.contains('sidebar-open')) {
+            toggleSidebar();
+        }
+    };
+
+    const scrollToBottom = () => { chatContainer.scrollTop = chatContainer.scrollHeight; };
+
+    const addMessageToHistory = (text, sender, sessionId) => {
+        if (sessions[sessionId]) {
+            sessions[sessionId].history.push({ text, sender });
+        }
+    };
+    
+    const addMessageToDOM = (text, sender) => {
+        const templateId = sender === 'user' ? 'user-message-template' : 'ai-message-template';
+        const template = document.getElementById(templateId);
+        const newMessage = template.cloneNode(true);
+        newMessage.classList.remove('hidden');
+        newMessage.removeAttribute('id');
+        const textElement = newMessage.querySelector(sender === 'user' ? '.user-text' : '.ai-text');
+        
+        if (sender === 'user') {
+            textElement.textContent = text;
+        } else {
+            textElement.innerHTML = DOMPurify.sanitize(marked.parse(text));
+        }
+
+        chatContainer.appendChild(newMessage);
+        scrollToBottom();
+        return textElement;
+    };
+
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+        const question = messageInput.value.trim();
+        if (!question) return;
+        
+        // --- FIXED: More specific logic to clear only the welcome message ---
+        const welcomeMessage = document.getElementById('welcome-message');
+        if (welcomeMessage) {
+            welcomeMessage.remove();
+        }
+        
+        hideQueryCards();
+        const sessionIdForRequest = currentSessionId;
+        addMessageToDOM(question, 'user');
+        addMessageToHistory(question, 'user', sessionIdForRequest);
+        if (sessions[sessionIdForRequest] && sessions[sessionIdForRequest].history.length === 1) {
+            sessions[sessionIdForRequest].title = question;
+            renderSessions();
+        }
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        sendButton.disabled = true;
+        messageInput.disabled = true;
+        const aiTextElement = addMessageToDOM('', 'ai');
+        aiTextElement.innerHTML = `<div class="flex items-center gap-3 text-[var(--text-secondary)]"><svg class="animate-spin h-5 w-5 text-[var(--dhl-yellow)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Thinking...</span></div>`;
+        scrollToBottom();
+
+        let fullResponse = '';
+        try {
+            const response = await fetch(`${API_BASE_URL}/ask`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question, session_id: sessionIdForRequest }),
+            });
+            if (!response.ok) throw new Error((await response.json()).error || `HTTP error! status: ${response.status}`);
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '', isFirstChunk = true;
+            const blinkingCursor = document.createElement('span');
+            blinkingCursor.className = 'blinking-cursor';
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) {
+                    aiTextElement.innerHTML = DOMPurify.sanitize(marked.parse(fullResponse));
+                    addMessageToHistory(fullResponse, 'ai', sessionIdForRequest);
+                    break;
+                }
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n\n');
+                buffer = lines.pop();
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const rawData = line.substring(6).trim();
+                        if (rawData === '[END]') {
+                            aiTextElement.innerHTML = DOMPurify.sanitize(marked.parse(fullResponse));
+                            addMessageToHistory(fullResponse, 'ai', sessionIdForRequest);
+                            return;
+                        }
+                        if (isFirstChunk) { isFirstChunk = false; aiTextElement.textContent = ''; }
+                        const token = JSON.parse(rawData);
+                        fullResponse += token;
+                        aiTextElement.innerHTML = DOMPurify.sanitize(marked.parse(fullResponse));
+                        aiTextElement.appendChild(blinkingCursor);
+                        scrollToBottom();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Streaming error:', error);
+            const errorMessage = `Error: Could not connect to the AI service. Details: ${error.message}`;
+            aiTextElement.innerHTML = `<span class="text-red-400">${errorMessage}</span>`;
+            addMessageToHistory(errorMessage, 'ai', sessionIdForRequest);
+        } finally {
+            sendButton.disabled = false;
+            messageInput.disabled = false;
+            messageInput.focus();
+        }
+    };
+
+    const checkApiHealth = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/healthcheck`);
+            const data = await response.json();
+            if (data.status === 'ready') {
+                clearInterval(healthCheckInterval);
+                statusDot.classList.remove('bg-orange-500', 'animate-pulse', 'bg-red-500');
+                statusDot.classList.add('bg-green-500');
+                statusText.textContent = 'Pronto';
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.placeholder = "Faça uma pergunta sobre nossos serviços...";
+            }
+        } catch (error) {
+            statusText.textContent = 'Desconectado';
+            statusDot.classList.remove('bg-orange-500', 'animate-pulse');
+            statusDot.classList.add('bg-red-500');
+            messageInput.placeholder = "Não foi possível conectar ao serviço de IA...";
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+        }
+    };
+    
+    const autoResizeTextarea = () => {
+        messageInput.style.height = 'auto';
+        messageInput.style.height = (messageInput.scrollHeight < 200 ? messageInput.scrollHeight : 200) + 'px';
+    };
+
+    // Event Listeners
+    chatForm.addEventListener('submit', handleFormSubmit);
+    messageInput.addEventListener('input', autoResizeTextarea);
+    messageInput.addEventListener('keydown', (e) => { 
+        if (e.key === 'Enter' && !e.shiftKey) { 
+            e.preventDefault(); 
+            chatForm.requestSubmit(); 
+        } 
+    });
+    menuToggle.addEventListener('click', toggleSidebar);
+    overlay.addEventListener('click', toggleSidebar);
+    sidebarNewChatButton.addEventListener('click', startNewSession);
+    sessionListContainer.addEventListener('click', (e) => {
+        const sessionElement = e.target.closest('[data-session-id]');
+        if (sessionElement) {
+            switchSession(sessionElement.getAttribute('data-session-id'));
+        }
+    });
+    queryCardsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('query-card')) {
+            messageInput.value = e.target.textContent;
+            chatForm.requestSubmit();
+        }
+    });
+
+    // Initial Setup
+    startNewSession();
+    healthCheckInterval = setInterval(checkApiHealth, 3000);
+    checkApiHealth();
+});
+</script>
+</body>
+</html>
+
