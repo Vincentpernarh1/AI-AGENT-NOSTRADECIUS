@@ -432,9 +432,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initial Setup
-    startNewSession();
-    healthCheckInterval = setInterval(checkApiHealth, 3000);
-    checkApiHealth();
+    // startNewSession();
+    // healthCheckInterval = setInterval(checkApiHealth, 3000);
+    // checkApiHealth();
+
+    // Initial Setup (no healthcheck)
+startNewSession();
+
+// Immediately enable the input
+statusDot.classList.remove('bg-orange-500', 'animate-pulse');
+statusDot.classList.add('bg-green-500');
+statusText.textContent = 'Conectado';
+
+messageInput.disabled = false;
+sendButton.disabled = false;
+messageInput.placeholder = "Faça uma pergunta sobre nossos serviços...";
 });
 </script>
 </body>
